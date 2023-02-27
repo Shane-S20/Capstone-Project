@@ -1,13 +1,22 @@
 import numpy as np
 import pandas as pd
+import time
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+
 #Open log file
-file = open('db-logfile.log', 'r')
+file = open('Test-Queries.log', 'r')
 read = file.readlines()
+
+current_time = time.ctime()
+
+#Open results file
+Results_File = open('Scan-Results.txt', 'w')
+Results_File.write('Machine Learning Scan Results: \n'
+                    "Scan Start Time: " + current_time + "\n\n")
 
 modified_log = []
 SQL_Injection_Commands = ["-- or #", "\' OR '1", "\' OR 1 -- -", "\" OR \"\" = \"", "\" OR 1 = 1 -- -", '\'=\'', "\'LIKE\'", "\'=0--+", "OR 1=1", "\' OR \'x\'=\'x", 
@@ -40,13 +49,12 @@ for indexes in modified_log:
 for line in modified_log:
     for phrase in SQL_Injection_Commands:
         if phrase in line:
-            #print("Found potential SQL Injection command: " + phrase)
+            Results_File.write("Found potential SQL Injection command: " + phrase + "\n")
             ML_Checkbox[modified_log.index(line)] = "1"
             Possible_Injections.append(line)
             Detected_Commands[modified_log.index(line)] = phrase
-
-        
-print(ML_Checkbox)
+       
+#print(ML_Checkbox)
 
 df_x = modified_log
 df_y = ML_Checkbox
@@ -68,6 +76,14 @@ count = 0
 for i in range (len(pred)):
     if pred[i]==actual[i]:
         count = count+1
-print("Correct Predictions: " + str(count))
-print("Total Predictions: " + str(len(pred)))
-print("Accuracy of Prediction: " + str(count / len(pred)))
+# print("Correct Predictions: " + str(count))
+# print("Total Predictions: " + str(len(pred)))
+# print("Accuracy of Prediction: " + str(count / len(pred)))
+
+current_time = time.ctime()
+
+Results_File.write("\nCorrect Predictions: " + str(count) + "\n")
+Results_File.write("Total Predictions: " + str(len(pred)) + "\n")
+Results_File.write("Accuracy of Prediction: " + str(count / len(pred) * 100) + "%" + "\n")
+Results_File.write("Scan Ended At: " + current_time)
+Results_File.close()
